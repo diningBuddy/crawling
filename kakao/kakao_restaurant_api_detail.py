@@ -86,9 +86,8 @@ def generate_operation_time(data):
     except Exception as e:
         print(f"Error processing operation time: {e}")
 
-    # Convert the dictionary to a properly formatted JSON string with single quotes
-    json_str = json.dumps(schedule, ensure_ascii=False)
-    return json_str.replace('"', "'")  # Replace double quotes with single quotes
+    # Convert the dictionary to a properly formatted JSON string
+    return json.dumps(schedule, ensure_ascii=False)  # No need to replace quotes
 
 # Main function to process the DataFrame and generate JSON data for operation_time
 def main():
