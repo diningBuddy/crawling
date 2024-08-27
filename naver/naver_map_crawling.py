@@ -231,3 +231,4 @@ for p in range(4):  # 4페이지까지
 
 csv_file.close()
 menu_csv_file.close()
+operation_csv_file.close()
