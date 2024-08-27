@@ -1,8 +1,7 @@
 import csv
 import time
-import re
-import pandas as pd
 
+import pandas as pd
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
@@ -61,6 +60,7 @@ for name in restaurant_names:
   try:
     restaurant_name_element = driver.find_element(By.XPATH, "//a[contains(@class, 'link_name')]")
   except:
+    restaurant_name = ''
     id += 1
     continue
 
