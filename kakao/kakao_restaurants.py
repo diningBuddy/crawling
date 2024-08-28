@@ -3,6 +3,8 @@ import time
 import os
 import pandas as pd
 
+
+import pandas as pd
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
@@ -15,6 +17,7 @@ csv_file = open('kakao_restaurants.csv', mode='w', newline='', encoding='utf-8')
 csv_writer = csv.writer(csv_file)
 csv_writer.writerow(['id', 'name', 'category', 'review_count', 'address', 'rating', 'rating_count', 'phone_number', 'operate_time', 'url'])
 
+
 # Selenium WebDriver 설정
 options = Options()
 options.add_argument("--disable-blink-features=AutomationControlled")
@@ -26,14 +29,17 @@ options.add_experimental_option('excludeSwitches', ['enable-logging', 'enable-au
 options.add_experimental_option("useAutomationExtension", False)
 options.add_argument("--remote-allow-origins=*")
 
+# 크롬 드라이버 설정
 driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
 
-# 카카오 맵 열기
+
+# 카카오맵 접속
 url = "https://map.kakao.com/"
 driver.get(url)
 time.sleep(6)
 
-# 검색 박스 설정
+
+# 검색어 입력 및 검색 실행
 search_box = driver.find_element(By.CSS_SELECTOR, "input[id='search.keyword.query']")
 search_keyword = "성균관대역 음식점"
 search_box.send_keys(search_keyword)
@@ -41,19 +47,16 @@ search_button = driver.find_element(By.CSS_SELECTOR, "button[id='search.keyword.
 driver.execute_script("arguments[0].click();", search_button)
 time.sleep(1)
 
+# 위치 고정
 location_fix = driver.find_element(By.CSS_SELECTOR, "span[id='search.keyword.currentmap']")
 driver.execute_script("arguments[0].click();", location_fix)
 
-# ../naver/restaurants.csv 파일 처리
-naver_map_crawling_path = '../naver/restaurants.csv'
-if os.path.exists(naver_map_crawling_path):
-  restaurants_df = pd.read_csv(naver_map_crawling_path)
-  restaurant_names = restaurants_df['name'].tolist()
-else:
-  print(f"{naver_map_crawling_path} 파일을 찾을 수 없습니다.")
-  restaurant_names = []
 
-# restaurant_names에 대해 크롤링
+# 기존 CSV 파일에서 식당 이름 목록 가져오기
+naver_map_crawling_path = '../naver/restaurants.csv'
+restaurants_df = pd.read_csv(naver_map_crawling_path)
+restaurant_names = restaurants_df['name'].tolist()
+
 id = 1
 for name in restaurant_names:
   search_box.clear()
@@ -67,6 +70,7 @@ for name in restaurant_names:
     id += 1
     continue
 
+  # 정보 추출
   category_element = driver.find_element(By.XPATH, "//div[@class='head_item clickArea']//span[@class='subcategory clickable']")
   address_element = driver.find_element(By.XPATH, "//p[@data-id='address']")
   rating = driver.find_element(By.XPATH, "//em[contains(@data-id, 'scoreNum')]")
@@ -77,12 +81,15 @@ for name in restaurant_names:
   detail_link_element = driver.find_element(By.XPATH, "//a[@class='moreview']")
   detail_link = detail_link_element.get_attribute('href')
 
+  # 평가 수 텍스트 처리
   rating_eval_count_element_text = ''
   if '건' in rating_eval_count_element.text:
     rating_eval_count_element_text = rating_eval_count_element.text.replace('건', '').strip()
 
-  operate_time_text = operate_time_element.text
+  # '영업시간' 텍스트 제거
+  operate_time_text = operate_time_element.text.replace('영업시간', '').strip()
 
+  # CSV 파일에 쓰기
   csv_writer.writerow([
     id,
     restaurant_name_element.text,
