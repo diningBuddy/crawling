@@ -1,9 +1,9 @@
-import json
 import time
 import requests
-import csv
 import pandas as pd
+import json
 
+# Function to fetch JSON data from the provided URL
 def fetch_data(url, headers):
     response = requests.get(url, headers=headers)
     if response.status_code == 200:
@@ -12,100 +12,93 @@ def fetch_data(url, headers):
         print(f"Failed to fetch data for URL {url} with status code {response.status_code}")
         return None
 
-def extract_keys(data, key_path):
-    keys = set()
-    target = data
-    for key in key_path:
-        target = target.get(key, {})
-        if not target:
-            break
+# Function to extract operationInfo data
+def extract_operation_info(data):
+    operation_info = {
+        'appointment': '',
+        'delivery': '',
+        'package': ''
+    }
+    try:
+        op_info = data.get('basicInfo', {}).get('operationInfo', {})
+        for key in operation_info.keys():
+            operation_info[key] = 'Y' if key in op_info and op_info[key] else 'N'
+    except Exception as e:
+        print(f"Error extracting operationInfo: {e}")
+
+    return operation_info
+
+# Function to extract facilityInfo data
+def extract_facility_info(data):
+    facility_info = {
+        'wifi': '',
+        'pet': '',
+        'parking': '',
+        'nursery': '',
+        'smokingroom': '',
+        'fordisabled': ''
+    }
+    try:
+        fac_info = data.get('basicInfo', {}).get('facilityInfo', {})
+        for key in facility_info.keys():
+            facility_info[key] = 'Y' if key in fac_info and fac_info[key] else 'N'
+    except Exception as e:
+        print(f"Error extracting facilityInfo: {e}")
+
+    return facility_info
+
+# Function to expand days in a day range to individual days
+def expand_days(day_range):
+    days = ['월', '화', '수', '목', '금', '토', '일']
+    day_map = {'월': 0, '화': 1, '수': 2, '목': 3, '금': 4, '토': 5, '일': 6}
+    if day_range == '매일':
+        return days
     else:
-        if isinstance(target, list):
-            for item in target:
-                keys.update(item.keys())
+        day_range_split = day_range.split('~')
+        if len(day_range_split) == 2 and day_range_split[0] in day_map and day_range_split[1] in day_map:
+            start_day, end_day = day_map[day_range_split[0]], day_map[day_range_split[1]]
+            return days[start_day:end_day+1]
         else:
-            keys.update(target.keys())
-    return keys
+            return day_range.split(',')
 
-def extract_facility_keys(data):
-    return extract_keys(data, ['basicInfo', 'facilityInfo'])
+# Function to generate operation_time JSON
+def generate_operation_time(data):
+    schedule = {day: {"시작시간": None, "종료시간": None, "휴게시작시간": None, "휴게종료시간": None, "라스트오더": None} for day in ['월요일', '화요일', '수요일', '목요일', '금요일', '토요일', '일요일']}
 
-def extract_operation_keys(data):
-    return extract_keys(data, ['basicInfo', 'operationInfo'])
-
-def extract_time_keys(data):
-    time_keys = set()
-    open_hour = data.get('basicInfo', {}).get('openHour', {})
     try:
-        period_list = open_hour.get('periodList', [])[0].get('timeList', [])
-        for i, period in enumerate(period_list):
-            for key in period.keys():
-                time_keys.add(f"{key}_{i+1}")
-    except:
-        pass
-    return time_keys
+        open_hour = data.get('basicInfo', {}).get('openHour', {})
+        for period in open_hour.get('periodList', []):
+            for time_info in period.get('timeList', []):
+                days = expand_days(time_info.get('dayOfWeek', ''))
+                time_name = time_info.get('timeName')
+                time_range = time_info.get('timeSE', '').strip().split('~')
 
-def collect_keys(reader, headers):
-    facility_keys, operation_keys, time_keys = set(), set(), set()
-    for row in reader:
-        url = row[9]  # URL 열 위치
-        if url == '':
-            continue
-        place_id = url.split('/')[-1]
-        api_url = f'https://place.map.kakao.com/main/v/{place_id}'
+                for day in days:
+                    day_name = day + "요일"
+                    if time_name == '영업시간':
+                        schedule[day_name]["시작시간"] = time_range[0].strip() if len(time_range) > 0 else None
+                        schedule[day_name]["종료시간"] = time_range[1].strip() if len(time_range) > 1 else None
+                    elif time_name == '라스트오더':
+                        schedule[day_name]["라스트오더"] = time_range[1].strip() if len(time_range) > 1 else None
+                    elif time_name == '휴게시간':
+                        schedule[day_name]["휴게시작시간"] = time_range[0].strip() if len(time_range) > 0 else None
+                        schedule[day_name]["휴게종료시간"] = time_range[1].strip() if len(time_range) > 1 else None
+    except Exception as e:
+        print(f"Error processing operation time: {e}")
 
-        data = fetch_data(api_url, headers)
-        if data:
-            facility_keys.update(extract_facility_keys(data))
-            operation_keys.update(extract_operation_keys(data))
-            time_keys.update(extract_time_keys(data))
+    # Convert the dictionary to a properly formatted JSON string
+    return json.dumps(schedule, ensure_ascii=False)  # No need to replace quotes
 
-        print("진행중")
-        time.sleep(0.1)
-    return sorted(facility_keys), sorted(operation_keys), sorted(time_keys)
-
-def extract_data(data, facility_keys, operation_keys, time_keys):
-    basic_info = data.get('basicInfo', {})
-
-    facility_info = basic_info.get('facilityInfo', {})
-    facility_data = {key: facility_info.get(key, '') for key in facility_keys}
-
-    operation_info = basic_info.get('operationInfo', {})
-    operation_data = {key: operation_info.get(key, '') for key in operation_keys}
-
-    open_hour = basic_info.get('openHour', {})
-    period_dict = {key: '' for key in time_keys}
-    try:
-        period_list = open_hour.get('periodList', [])[0].get('timeList', [])
-        for i, period in enumerate(period_list):
-            for key, value in period.items():
-                period_dict[f"{key}_{i+1}"] = value
-    except:
-        pass
-
-    return facility_data, operation_data, period_dict
-
+# Main function to process the DataFrame and generate JSON data for operation_time
 def main():
     headers = {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3'
     }
 
+    # Load the CSV file
     df = pd.read_csv('kakao_restaurants.csv')
-    new_columns = []
 
-    # 파일을 한 번 읽어서 필요한 키들을 수집합니다.
-    with open('kakao_restaurants.csv', mode='r', newline='', encoding='utf-8') as csvfile:
-        reader = csv.reader(csvfile)
-        next(reader)  # 헤더 건너뛰기
-        facility_keys, operation_keys, time_keys = collect_keys(reader, headers)
-        new_columns = facility_keys + time_keys + operation_keys
-
-    # 필요한 열이 없는 경우 추가합니다.
-    for column in new_columns:
-        if column not in df.columns:
-            df[column] = ''
-
-    # 각 행을 업데이트합니다.
+    # Process each row
     for idx, row in df.iterrows():
         url = row['url']
         if url == '':
@@ -115,22 +108,32 @@ def main():
 
         data = fetch_data(api_url, headers)
         if data:
-            facility_data, operation_data, period_dict = extract_data(data, facility_keys, operation_keys, time_keys)
+            # Extract operationInfo and facilityInfo
+            operation_data = extract_operation_info(data)
+            facility_data = extract_facility_info(data)
 
-            for key, value in facility_data.items():
-                df.at[idx, key] = value
-            for key, value in period_dict.items():
-                df.at[idx, key] = value
+            # Update DataFrame with operationInfo and facilityInfo
             for key, value in operation_data.items():
                 df.at[idx, key] = value
+            for key, value in facility_data.items():
+                df.at[idx, key] = value
+
+            # Generate JSON string for operation_time
+            operation_time_data = generate_operation_time(data)
+            df.at[idx, 'operation_time'] = operation_time_data
 
             print(f"Updated row {idx+1}")
 
             time.sleep(0.1)
 
+    # Drop the old columns related to last order as they are now included in operation_time
+    columns_to_drop = ['매일_last_order', '월~토_last_order', '월~금_last_order', 'operate_time']
+    df.drop(columns=[col for col in columns_to_drop if col in df.columns], inplace=True)
+
+    # Save the updated DataFrame to a new CSV file
     df.to_csv('kakao_restaurants.csv', index=False)
 
-print("Data extraction and CSV file creation complete.")
+    print("Data extraction and CSV file creation complete.")
 
 if __name__ == "__main__":
     main()
