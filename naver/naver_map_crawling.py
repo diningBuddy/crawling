@@ -203,16 +203,15 @@ for p in range(4):  # 4페이지까지
             except:
                 review_count = "-1"
 
-            if int(review_count)>=50:
-                # 정보를 리스트에 저장
-                visitor_reviews.append({
-                    "리뷰 내용": review_name,
-                    "리뷰 갯수": review_count,
-                })
-                print({
-                    "리뷰 내용": review_name,
-                    "리뷰 갯수": review_count,
-                })
+            # 정보를 리스트에 저장
+            visitor_reviews.append({
+                "리뷰 내용": review_name,
+                "리뷰 갯수": review_count,
+            })
+            print({
+                "리뷰 내용": review_name,
+                "리뷰 갯수": review_count,
+            })
 
         for visitor_review in visitor_reviews:
             review_csv_writer.writerow(
