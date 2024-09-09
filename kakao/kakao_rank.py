@@ -8,7 +8,7 @@ from webdriver_manager.chrome import ChromeDriverManager
 
 # Load kakao_restaurants.csv
 restaurants_df = pd.read_csv("kakao_restaurants.csv")
-restaurant_names = restaurants_df['name'].tolist()  # Extract the restaurant names
+restaurant_names_dict = {name: True for name in restaurants_df['name']}
 
 # Configure Selenium WebDriver
 options = Options()
@@ -36,7 +36,7 @@ for item in items:
   restaurant_name = item.get("name")
 
   # Only include the restaurant if its name is in the kakao_restaurants.csv list
-  if restaurant_name in restaurant_names:
+  if restaurant_name in restaurant_names_dict:
     parsed_data.append({
       "rank": index,  # Use the index variable as rank
       "name": restaurant_name,
