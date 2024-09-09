@@ -4,17 +4,17 @@ import re
 # CSV 파일 읽기
 kakao_restaurants_df = pd.read_csv('kakao_restaurants.csv')
 menus_df = pd.read_csv('../naver/menus.csv')
-restaurants_df = pd.read_csv('../naver/restaurants.csv')
+naver_restaurants_df = pd.read_csv('../naver/restaurants.csv')
 
 # 1번 파일(kakao_restaurants.csv)과 3번 파일(restaurants.csv)의 restaurant_id 비교
 kakao_restaurant_ids = set(kakao_restaurants_df['id'])
-restaurant_ids = set(restaurants_df['id'])
+restaurant_ids = set(naver_restaurants_df['id'])
 
 # 1번 파일에 존재하지 않는 restaurant_id 찾기
 missing_ids = restaurant_ids - kakao_restaurant_ids
 
 # 해당 restaurant_id의 restaurant_name 추출
-missing_restaurants = restaurants_df[restaurants_df['id'].isin(missing_ids)]
+missing_restaurants = naver_restaurants_df[naver_restaurants_df['id'].isin(missing_ids)]
 
 # 추출된 restaurant_name과 id를 이용해 검색
 missing_names = missing_restaurants[['id', 'name']].values.tolist()
