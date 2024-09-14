@@ -6,6 +6,10 @@ from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.options import Options
 from webdriver_manager.chrome import ChromeDriverManager
 
+# Load kakao_restaurants.csv
+restaurants_df = pd.read_csv("kakao_restaurants.csv")
+restaurant_names_dict = {name: True for name in restaurants_df['name']}
+
 # Configure Selenium WebDriver
 options = Options()
 options.add_argument("--headless")  # Run in headless mode for automation
@@ -25,17 +29,25 @@ driver.quit()
 # Parse JSON data
 items = data['items']
 parsed_data = []
+index = 1  # Initialize the rank index starting from 1
+
+# Iterate over the JSON data and only add the restaurants present in kakao_restaurants.csv
 for item in items:
-  parsed_data.append({
-    "rank": item.get("rank"),
-    "name": item.get("name"),
-    "lat": item.get("lat"),
-    "lon": item.get("lon"),
-    "category_name": item.get("category_name"),
-    "review_count": item.get("review_count"),
-    "review_rating": item.get("review_rating"),
-    "thumbnail": item.get("thumbnail"),
-  })
+  restaurant_name = item.get("name")
+
+  # Only include the restaurant if its name is in the kakao_restaurants.csv list
+  if restaurant_name in restaurant_names_dict:
+    parsed_data.append({
+      "rank": index,  # Use the index variable as rank
+      "name": restaurant_name,
+      "lat": item.get("lat"),
+      "lon": item.get("lon"),
+      "category_name": item.get("category_name"),
+      "review_count": item.get("review_count"),
+      "review_rating": item.get("review_rating"),
+      "thumbnail": item.get("thumbnail"),
+    })
+    index += 1  # Increment the index for the next restaurant
 
 # Create DataFrame
 df = pd.DataFrame(parsed_data)
