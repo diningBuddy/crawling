@@ -3,7 +3,6 @@ import re
 
 # CSV 파일 읽기
 kakao_restaurants_df = pd.read_csv('kakao_restaurants.csv')
-menus_df = pd.read_csv('../naver/menus.csv')
 naver_restaurants_df = pd.read_csv('../naver/restaurants.csv')
 
 # 1번 파일(kakao_restaurants.csv)과 3번 파일(restaurants.csv)의 restaurant_id 비교
@@ -26,7 +25,7 @@ replace_pattern = re.compile(r'(성대점|영통1호점|천천동점|성대역�
 print("Kakao에서 검색할 restaurant_names:")
 with open('missing_restaurant_names.txt', 'w', encoding='utf-8') as f:
   for restaurant_id, name in missing_names:
-    # '성대점', '성대역본점', '성대역사점' 치환
+    # '성대점', '성대역본점', '성대역사점'등 치환
     modified_name = replace_pattern.sub('', name).strip()
 
     # 출력 및 파일에 기록 (ID 뒤에 콤마 제거)
@@ -34,9 +33,3 @@ with open('missing_restaurant_names.txt', 'w', encoding='utf-8') as f:
     f.write(f"{restaurant_id} {modified_name + ' 장안구'}\n")
 
 print("처리가 완료되었습니다. 'missing_restaurant_names.txt' 파일을 확인하세요.")
-
-# kakao_restaurants.csv 파일을 정렬하고 저장
-sorted_kakao_df = kakao_restaurants_df.sort_values(by='id')  # 'id' 컬럼을 기준으로 정렬
-sorted_kakao_df.to_csv('kakao_restaurants.csv', index=False, encoding='utf-8-sig')
-
-print("kakao_restaurants.csv 파일이 ID 기준으로 정렬되었습니다.")
