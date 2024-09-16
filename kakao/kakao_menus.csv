@@ -1,4 +1,4 @@
-restaurant_id,menu_name,price,description,is_representative,image_url
+﻿restaurant_id,menu_name,price,description,is_representative,image_url
 1,"하이볼(레몬, 자몽, 얼그레이)","7,000",시원 상큼한 하이볼3종,대표,https://search.pstatic.net/common/?autoRotate=true&quality=95&type=f320_320&src=https://ldb-phinf.pstatic.net/20230525_34/16849976756701d50P_JPEG/Screenshot_20230525_095732_Samsung_Internet.jpg
 1,미박삼겹살(180g),"13,000",국내산 미박삼겹살,대표,https://search.pstatic.net/common/?autoRotate=true&quality=95&type=f320_320&src=https://ldb-phinf.pstatic.net/20220704_258/1656926669140SnHFG_JPEG/KakaoTalk_Photo_2022-02-09-15-36-17_002.jpeg
 1,특목살(180g),"13,000",국내산 최고급 목살,대표,https://search.pstatic.net/common/?autoRotate=true&quality=95&type=f320_320&src=https://ldb-phinf.pstatic.net/20220704_259/1656926635908eKEkJ_JPEG/DSC01567.jpg
