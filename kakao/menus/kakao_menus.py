@@ -1,8 +1,8 @@
 import pandas as pd
 
 # 파일 경로 설정
-menus_file = '../naver/menus.csv'
-not_found_file = 'not_found_restaurants.txt'
+menus_file = '../../naver/menus.csv'
+not_found_file = '../data/not_found_restaurants.txt'
 output_file = 'kakao_menus.csv'
 
 # CSV 파일 읽기

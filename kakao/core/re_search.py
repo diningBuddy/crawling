@@ -2,8 +2,8 @@ import pandas as pd
 import re
 
 # CSV 파일 읽기
-kakao_restaurants_df = pd.read_csv('kakao_restaurants.csv')
-naver_restaurants_df = pd.read_csv('../naver/restaurants.csv')
+kakao_restaurants_df = pd.read_csv('../data/kakao_restaurants.csv')
+naver_restaurants_df = pd.read_csv('../../naver/restaurants.csv')
 
 # 1번 파일(kakao_restaurants.csv)과 3번 파일(restaurants.csv)의 restaurant_id 비교
 kakao_restaurant_ids = set(kakao_restaurants_df['id'])
@@ -23,7 +23,7 @@ replace_pattern = re.compile(r'(성대점|영통1호점|천천동점|성대역�
 
 # kakao_crawling.py에서 검색할 수 있도록 출력 및 저장
 print("Kakao에서 검색할 restaurant_names:")
-with open('missing_restaurant_names.txt', 'w', encoding='utf-8') as f:
+with open('../data/missing_restaurant_names.txt', 'w', encoding='utf-8') as f:
   for restaurant_id, name in missing_names:
     # '성대점', '성대역본점', '성대역사점'등 치환
     modified_name = replace_pattern.sub('', name).strip()
