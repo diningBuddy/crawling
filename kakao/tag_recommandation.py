@@ -64,14 +64,14 @@ def add_tags_to_dataframe(df, reviews):
     # 각 식당의 리뷰 20개를 종합하여 GPT API로 태그 추출 (리뷰 수를 함께 고려)
     tags = get_tags_for_restaurant(restaurant_id, restaurant_reviews[:20])  # 최대 20개의 리뷰만 사용
 
-    # 태그를 각 그룹(목적, 분위기, 테마, 시설)으로 분리
+    # 태그를 각 그룹(목적, 분위기, 테마, 시설)으로 분리 및 공백 제거
     tag_lines = tags.split('\n')
     tag_dict = {
       'restaurant_id': restaurant_id,
-      '목적': tag_lines[0].split(': ')[1] if len(tag_lines) > 0 else '',
-      '분위기': tag_lines[1].split(': ')[1] if len(tag_lines) > 1 else '',
-      '테마': tag_lines[2].split(': ')[1] if len(tag_lines) > 2 else '',
-      '시설': tag_lines[3].split(': ')[1] if len(tag_lines) > 3 else ''
+      '목적': tag_lines[0].split(': ')[1].strip() if len(tag_lines) > 0 else '',
+      '분위기': tag_lines[1].split(': ')[1].strip() if len(tag_lines) > 1 else '',
+      '테마': tag_lines[2].split(': ')[1].strip() if len(tag_lines) > 2 else '',
+      '시설': tag_lines[3].split(': ')[1].strip() if len(tag_lines) > 3 else ''
     }
 
     # 식당별로 한 번만 태그를 추가
