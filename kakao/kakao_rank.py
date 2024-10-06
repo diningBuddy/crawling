@@ -7,7 +7,7 @@ from selenium.webdriver.chrome.options import Options
 from webdriver_manager.chrome import ChromeDriverManager
 
 # Load kakao_restaurants.csv
-restaurants_df = pd.read_csv("kakao_restaurants.csv")
+restaurants_df = pd.read_csv("data/kakao_restaurants.csv")
 restaurant_names_dict = {name: True for name in restaurants_df['name']}
 
 # Configure Selenium WebDriver

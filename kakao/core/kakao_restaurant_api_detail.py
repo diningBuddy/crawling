@@ -96,7 +96,7 @@ def main():
     }
 
     # Load the CSV file
-    df = pd.read_csv('kakao_restaurants.csv')
+    df = pd.read_csv('../data/kakao_restaurants.csv')
 
     # Process each row
     for idx, row in df.iterrows():

@@ -7,7 +7,7 @@ from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.by import By
 from webdriver_manager.chrome import ChromeDriverManager
 
-csv_file = open('kakao_restaurants.csv', mode='w', newline='', encoding='utf-8')
+csv_file = open('../data/kakao_restaurants.csv', mode='w', newline='', encoding='utf-8')
 csv_writer = csv.writer(csv_file)
 csv_writer.writerow(['id', 'name', 'category','review_count','address','rating','rating_count', 'phone_number', 'operate_time','url'])
 
