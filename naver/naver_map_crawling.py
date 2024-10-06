@@ -23,6 +23,17 @@ operation_csv_writer.writerow(['restaurant_id', 'restaurant_name', 'day', 'info'
 review_csv_file = open('review_csv_file.csv', mode='w', newline='', encoding='utf-8')
 review_csv_writer = csv.writer(review_csv_file)
 review_csv_writer.writerow(['restaurant_id', 'review_name', 'review_count'])
+# 리뷰를 CSV에 저장하는 함수
+def save_reviews(restaurant_id, restaurant_name, visitor_reviews):
+    for visitor_review in visitor_reviews[:20]:
+        # 식당 이름, 리뷰 내용, 리뷰 갯수를 각각 다른 열에 기록
+        review_csv_writer.writerow([
+            restaurant_name,  # 식당 이름
+            visitor_review['리뷰 내용'],  # 리뷰 내용
+            visitor_review['리뷰 갯수']  # 리뷰 갯수
+        ])
+    review_csv_file.flush()  # 기록된 데이터를 바로 파일에 반영
+
 
 options = Options()
 options.add_argument("--disable-blink-features=AutomationControlled")
@@ -186,13 +197,36 @@ for p in range(4):  # 4페이지까지
             driver.execute_script("document.querySelector('a[href*=\"/review\"]').click();")  # 리뷰 클릭
             time.sleep(5)
 
-            more_details = driver.find_elements(By.CSS_SELECTOR, 'svg.EhXBV')
-            more_details[1].click()
+            # 리뷰를 더 불러오는 작업을 최대 10회까지 반복
+            for attempt in range(4):  # 10번 시도 (필요에 따라 숫자를 조절 가능)
+                more_details = driver.find_elements(By.CSS_SELECTOR, 'svg.EhXBV')
 
-            time.sleep(2)
+                # more_details가 존재하는지 확인
+                if more_details and len(more_details) > 1:
+                    try:
+                        more_details[1].click()  # 두 번째 more_details 클릭
+                        print(f"more_details 버튼 {attempt + 1}번째 클릭됨")  # 디버깅용 로그
+                        time.sleep(3)  # 클릭 후 로딩 시간 추가
+                    except Exception as e:
+                        print(f"more_details 버튼 클릭 중 오류 발생: {e}")
+                        break  # 오류 발생 시 반복 종료
+                else:
+                    print("더 이상 more_details 버튼 없음")  # 디버깅용 로그
+                    break  # 더 이상 버튼이 없으면 반복 종료
+
+            # 새로운 리뷰 목록을 가져오기 위해 다시 요소들을 가져옴
             review_contents = driver.find_elements(By.CSS_SELECTOR, 'li.MHaAm')
-        except:
+
+            # 리뷰를 찾을 수 없을 때 로그 출력
+            if len(review_contents) == 0:
+                print("리뷰 정보를 찾을 수 없음")  # 리뷰 요소가 없는 경우 출력
+            else:
+                print(f"{len(review_contents)}개의 리뷰를 찾음")  # 찾은 리뷰 수 출력
+
+        except Exception as e:
             review_contents = []
+            print(f"리뷰 로딩 중 오류 발생: ")  # 예외 발생 시 오류 메시지 출력
+
         visitor_reviews = []
 
         # 각 리뷰 요소에 대하여 정보 추출
@@ -213,9 +247,9 @@ for p in range(4):  # 4페이지까지
                 "리뷰 갯수": review_count,
             })
 
-        for visitor_review in visitor_reviews:
-            review_csv_writer.writerow(
-                [restaurant_id, visitor_review["리뷰 내용"], visitor_review["리뷰 갯수"]])
+
+        # 리뷰 저장 호출
+        save_reviews(restaurant_id, name_text, visitor_reviews)
 
         driver.switch_to.default_content()
         time.sleep(1)
