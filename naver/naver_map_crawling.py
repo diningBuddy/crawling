@@ -83,9 +83,9 @@ for p in range(4):  # 4페이지까지
         time.sleep(1)
 
         driver.switch_to.default_content()
-        time.sleep(15)
+        time.sleep(1)
         driver.switch_to.frame(driver.find_element(By.CSS_SELECTOR, "iframe#entryIframe"))
-        time.sleep(10 )
+        time.sleep(1.5)
 
         try:
             driver.find_element(By.CLASS_NAME, "_UCia").click()  # 주소 자세히 클릭
