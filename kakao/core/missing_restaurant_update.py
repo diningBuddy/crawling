@@ -132,7 +132,7 @@ updated_df = updated_df.sort_values(by='id', ascending=True)
 updated_df = updated_df.drop_duplicates(subset=['name', 'address'], keep='first')
 
 # CSV 파일에 저장 (기존 데이터를 덮어쓰지 않도록)
-updated_df.to_csv('kakao_restaurants.csv', index=False, encoding='utf-8-sig')
+updated_df.to_csv('../data/kakao_restaurants.csv', index=False, encoding='utf-8-sig')
 
 # CSV 파일 닫기
 not_found_file.close()
