@@ -2,6 +2,8 @@ import time
 import requests
 import pandas as pd
 import json
+import os
+from dotenv import load_dotenv
 
 # Function to fetch JSON data from the provided URL
 def fetch_data(url, headers):
@@ -11,6 +13,51 @@ def fetch_data(url, headers):
     else:
         print(f"Failed to fetch data for URL {url} with status code {response.status_code}")
         return None
+
+def get_kakao_coordinates(address: str, api_key: str) -> tuple:
+    """
+    카카오 REST API를 통해 주소의 위경도 좌표를 반환
+    """
+    url = "https://dapi.kakao.com/v2/local/search/address.json"
+    headers = {"Authorization": f"KakaoAK {api_key}"}
+    params = {"query": address}
+
+    try:
+        response = requests.get(url, headers=headers, params=params)
+        if response.status_code == 200:
+            result = response.json()["documents"][0]
+            return float(result["y"]), float(result["x"])  # latitude, longitude
+        return None, None
+    except Exception as e:
+        print(f"Error getting coordinates: {e}")
+        return None, None
+
+def extract_coordinates(data):
+    load_dotenv()
+    api_key = os.getenv('KAKAO_REST_API_KEY')
+    coordinates = {
+        'latitude': None,
+        'longitude': None
+    }
+
+    try:
+        address_info = data.get('basicInfo', {}).get('address', {})
+        if address_info:
+            region = address_info.get('region', {})
+            new_addr = address_info.get('newaddr', {})
+
+            # 전체 주소 조합 (도로명 + 지역)
+            full_address = f"{region.get('newaddrfullname', '')} {new_addr.get('newaddrfull', '')}"
+            print(f"Querying address: {full_address}")
+
+            if full_address.strip():
+                lat, lon = get_kakao_coordinates(full_address, api_key)
+                coordinates['latitude'] = lat
+                coordinates['longitude'] = lon
+    except Exception as e:
+        print(f"Error extracting coordinates: {e}")
+
+    return coordinates
 
 # Function to extract operationInfo data
 def extract_operation_info(data):
@@ -96,7 +143,7 @@ def main():
     }
 
     # Load the CSV file
-    df = pd.read_csv('../data/kakao_restaurants.csv')
+    df = pd.read_csv('./data/kakao_restaurants.csv')
 
     # Process each row
     for idx, row in df.iterrows():
@@ -111,11 +158,14 @@ def main():
             # Extract operationInfo and facilityInfo
             operation_data = extract_operation_info(data)
             facility_data = extract_facility_info(data)
+            coordinate_data = extract_coordinates(data)
 
             # Update DataFrame with operationInfo and facilityInfo
             for key, value in operation_data.items():
                 df.at[idx, key] = value
             for key, value in facility_data.items():
+                df.at[idx, key] = value
+            for key, value in coordinate_data.items():  # 추가된 부분
                 df.at[idx, key] = value
 
             # Generate JSON string for operation_time
@@ -131,7 +181,7 @@ def main():
     df.drop(columns=[col for col in columns_to_drop if col in df.columns], inplace=True)
 
     # Save the updated DataFrame to a new CSV file
-    df.to_csv('kakao_restaurants.csv', index=False)
+    df.to_csv('./data/kakao_restaurants.csv', index=False)
 
     print("Data extraction and CSV file creation complete.")
 
